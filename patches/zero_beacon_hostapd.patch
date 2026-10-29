@@ -1,0 +1,40 @@
+--- a/src/ap/beacon.c
++++ b/src/ap/beacon.c
+@@
+-static void hostapd_gen_beacon(struct hostapd_data *hapd, u8 *buf, size_t len)
++static void hostapd_gen_beacon(struct hostapd_data *hapd, u8 *buf, size_t len)
+ {
+-	if (!hapd->beacon_set_done)
++	if (hapd->iface->drv_flags & WPA_DRIVER_FLAGS_AP) {
++		if (!hapd->beacon_set_done && hapd->iface->freq > 0) {
++			return;
++		}
++	}
++	if (!hapd->beacon_set_done)
+ 		return;
+-	if (hapd->iface->freq == 0)
++	if (hapd->iface->freq == 0)
+ 		return;
+ }
+--- a/src/ap/ieee802_11.c
++++ b/src/ap/ieee802_11.c
+@@
+ int ieee802_11_mgmt(struct hostapd_data *hapd, u8 *buf, size_t len, struct ieee802_11_elems *elems)
+ {
+ 	struct ieee802_11_mgmt *mgmt = (struct ieee802_11_mgmt *) buf;
++	if (mgmt->frame_type == WLAN_FC_TYPE_MGMT &&
++	    mgmt->frame_sub_type == WLAN_FC_STYPE_PROBE_REQ &&
++	    hapd->acl_cache &&
++	    !hostapd_acl_accept(hapd, mgmt->sa)) {
++		hostapd_logger(hapd, NULL, HOSTAPD_LEVEL_DEBUG,
++			"Drop probe request for unauthorized MAC %02x:%02x:%02x:%02x:%02x:%02x",
++			mgmt->sa[0], mgmt->sa[1], mgmt->sa[2], mgmt->sa[3], mgmt->sa[4], mgmt->sa[5]);
++		return 0;
++	}
+ 	if (mgmt->frame_type != WLAN_FC_TYPE_MGMT)
+ 		return 0;
++	if (hapd->hidden_ssid && !hostapd_acl_accept(hapd, mgmt->sa))
++		return 0;
+ 	return 1;
+ }
+*** End Patch

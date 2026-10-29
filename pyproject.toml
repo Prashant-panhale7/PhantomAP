@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phantom-ap"
+version = "0.1.0"
+description = "Zero-Visibility Wi-Fi & Hotspot Cloaking Suite"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "PhantomAP Contributors" }]
+keywords = ["wifi", "networking", "security", "hostapd", "cloak", "wireless"]
+dependencies = [
+  "click>=8.1",
+  "paramiko>=3.4",
+  "pyyaml>=6.0",
+  "qrcode[pil]>=7.0",
+  "rich>=13.0",
+  "textual>=0.56",
+  "pytest>=8.0",
+]
+
+[project.scripts]
+phantom-ap = "phantom_ap.cli:main"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["phantom_ap*"]
